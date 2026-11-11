@@ -2,7 +2,6 @@
 # ADR 003: Use SQLAlchemy as the Object-Relational Mapper
 
 - **Status:** Accepted
-- **Date:** 2026-11-08
 
 ## Context
 

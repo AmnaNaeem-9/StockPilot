@@ -1,4 +1,3 @@
-
 # ADR 005: Adopt a Layered Application Architecture
 
 - **Status:** Accepted

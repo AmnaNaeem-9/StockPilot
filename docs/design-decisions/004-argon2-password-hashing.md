@@ -2,7 +2,6 @@
 # ADR 004: Use Argon2 for Password Hashing
 
 - **Status:** Accepted
-- **Date:** 2026-11-08
 
 ## Context
 

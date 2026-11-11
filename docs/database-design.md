@@ -1,9 +1,8 @@
-
 # StockPilot — Database Design
 
 ## 1. Overview
 
-StockPilot uses SQLite as its relational database and SQLAlchemy as its Object-Relational Mapping (ORM) tool.
+StockPilot uses **PostgreSQL**, hosted on **Supabase**, as its relational database. SQLAlchemy is used as the Object-Relational Mapping (ORM) tool, while Psycopg 3 provides the PostgreSQL database connection.
 
 The database stores user accounts and inventory-related information, including categories, suppliers, products, and stock transactions.
 
@@ -13,11 +12,15 @@ The database schema is defined in:
 app/database/schema.py
 ```
 
-The local SQLite database file is:
+Database connection and session management are handled through:
 
 ```text
-app/inventory.db
+app/database/db_manager.py
 ```
+
+The application obtains its database connection URL through the `DB_URL` configuration variable. Locally, it can be configured using `.streamlit/secrets.toml` or an environment variable. In Streamlit Community Cloud, it is configured through the application's Secrets settings.
+
+Supabase PostgreSQL is the persistent database used by the deployed application.
 
 ## 2. Database Tables
 
@@ -339,15 +342,20 @@ The following fields track record creation and updates:
 
 Transactions additionally include `transaction_date` to record when the stock movement occurred.
 
-## 10. Database Technology
+## 10. Database Technology and Connection
 
-| Technology             | Purpose                       |
-| ---------------------- | ----------------------------- |
-| SQLite                 | Relational data storage       |
-| SQLAlchemy             | ORM and database interaction  |
-| Foreign Keys           | Referential integrity         |
-| Unique Constraints     | Prevent duplicate records     |
-| Composite Foreign Keys | Enforce ownership consistency |
+StockPilot uses the following database technologies:
+
+| Technology             | Purpose                                                |
+| ---------------------- | ------------------------------------------------------ |
+| Supabase PostgreSQL    | Hosted relational database and persistent data storage |
+| SQLAlchemy             | ORM and database interaction                           |
+| Psycopg 3              | PostgreSQL database driver                             |
+| Foreign Keys           | Referential integrity                                  |
+| Unique Constraints     | Prevent duplicate records                              |
+| Composite Foreign Keys | Enforce ownership consistency                          |
+
+### Database Connection
 
 The database engine and session configuration are managed through:
 
@@ -355,11 +363,46 @@ The database engine and session configuration are managed through:
 app/database/db_manager.py
 ```
 
-The database models are defined through:
+The database models are defined in:
 
 ```text
 app/database/schema.py
 ```
+
+The application uses a PostgreSQL connection URL supplied through the `DB_URL` configuration variable.
+
+The connection uses Supabase's Session Pooler:
+
+- **Database provider:** Supabase
+- **Database engine:** PostgreSQL
+- **Connection mode:** Session Pooler
+- **Port:** 5432
+- **Driver:** Psycopg 3
+- **ORM:** SQLAlchemy
+
+### Environment Configuration
+
+For local development, the database connection can be configured in:
+
+```text
+.streamlit/secrets.toml
+```
+
+For Streamlit Community Cloud, the connection URL is configured through the application's Secrets settings.
+
+Example configuration:
+
+```toml
+DB_URL = "YOUR_SUPABASE_POSTGRESQL_CONNECTION_URL"
+```
+
+Actual database credentials must never be committed to GitHub or included in public documentation.
+
+### Database Initialization
+
+SQLAlchemy's `Base.metadata.create_all()` is used to create database tables that do not already exist.
+
+This initializes the schema for a new database. It does not automatically migrate existing tables when the schema changes.
 
 ## 11. Design Considerations
 
@@ -371,11 +414,14 @@ The current database design focuses on:
 - Maintaining valid relationships between inventory records.
 - Preserving transaction history while the referenced product exists.
 - Keeping database access centralized through SQLAlchemy.
+- Using Supabase PostgreSQL for persistent hosted storage.
+- Keeping database credentials outside the source code.
 
 ---
 
 **Document:** Database Design
 **Project:** StockPilot — Inventory Management System
-**Database:** SQLite
+**Database:** Supabase PostgreSQL
 **ORM:** SQLAlchemy
-**Status:** Current database schema
+**Driver:** Psycopg 3
+**Status:** Updated for PostgreSQL deployment
