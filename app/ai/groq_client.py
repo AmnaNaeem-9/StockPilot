@@ -1,23 +1,40 @@
 
 import os
+
+import streamlit as st
 from groq import Groq
 
 
 class GroqAIClient:
     """
     Handles AI interactions through the Groq API.
-    Used by StockPilot to generate inventory insights,
+
+    StockPilot uses OpenAI's GPT-OSS-120B model,
+    accessed through Groq's API.
+
+    Used to generate inventory insights,
     restocking suggestions, and answers to custom questions.
     """
 
     MODEL = "openai/gpt-oss-120b"
 
     def __init__(self):
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = None
+
+        # Check Streamlit Cloud Secrets first.
+        try:
+            api_key = st.secrets.get("GROQ_API_KEY")
+        except (FileNotFoundError, KeyError):
+            pass
+
+        # Fall back to local environment variables.
+        if not api_key:
+            api_key = os.getenv("GROQ_API_KEY")
 
         if not api_key:
             raise EnvironmentError(
-                "GROQ_API_KEY not found. Add it to your .env file."
+                "GROQ_API_KEY not found. Configure it in "
+                "Streamlit Secrets or your local .env file."
             )
 
         self.client = Groq(api_key=api_key)
@@ -126,8 +143,6 @@ Be concise and use clear headings.
         ])
 
         prompt = f"""
-You are StockPilot AI, an intelligent inventory management assistant.
-
 CURRENT INVENTORY CONTEXT:
 
 Total Products: {inventory_context.get('total_products', 0)}
